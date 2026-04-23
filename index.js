@@ -4,46 +4,48 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 
 app.post("/ussd", (req, res) => {
-    let { text, phoneNumber } = req.body;
+    const { text } = req.body;
 
     let response = "";
 
-    // 1. MAIN MENU
     if (text === "") {
-        response = `CON Welcome 👊🏾
-1. Buy Item
-2. Check Balance`;
+        response = `CON Welcome to LoanGiver 💰
+1. Apply Loan
+2. Check Status
+3. Help`;
     }
 
-    // 2. BUY ITEM
     else if (text === "1") {
-        response = `CON Enter amount`;
+        response = `CON Enter loan amount`;
     }
 
-    // 3. ENTER AMOUNT
     else if (text.startsWith("1*") && text.split("*").length === 2) {
-        let amount = text.split("*")[1];
-
-        response = `CON Confirm Payment
-1. Pay KES ${amount}
-2. Cancel`;
+        response = `CON Enter repayment days`;
     }
 
-    // 4. CONFIRM PAYMENT
-    else if (text.includes("*1")) {
-        let amount = text.split("*")[1];
+    else if (text.split("*").length === 3) {
+        const parts = text.split("*");
+        const amount = parts[1];
+        const days = parts[2];
 
-        response = `END Payment request received for KES ${amount} 👍`;
+        let status = amount <= 5000 ? "APPROVED ✔️" : "REJECTED ❌";
+
+        response = `END Loan Result
+Amount: KES ${amount}
+Days: ${days}
+Status: ${status}
+STK coming soon 💳`;
     }
 
-    // 5. CANCEL
-    else if (text.includes("*2")) {
-        response = `END Transaction cancelled`;
-    }
-
-    // 6. CHECK BALANCE
     else if (text === "2") {
-        response = `END Your balance is KES 0`;
+        response = `END No active loan found`;
+    }
+
+    else if (text === "3") {
+        response = `END LoanGiver Help:
+1. Apply loan
+2. Check status
+3. Help`;
     }
 
     else {
@@ -53,6 +55,12 @@ app.post("/ussd", (req, res) => {
     res.send(response);
 });
 
-app.listen(3000, () => {
-    console.log("USSD running on port 3000");
+app.get("/", (req, res) => {
+    res.send("LoanGiver USSD is running ✔️");
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log("USSD running on port " + PORT);
 });
